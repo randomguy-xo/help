@@ -1,0 +1,231 @@
+CLUSTERING
+
+newiris <- iris
+
+newiris$Species <- NULL
+
+(kc <- kmeans(newiris, 3))
+
+table(iris$Species, kc$cluster)
+
+plot(newiris[c("Sepal.Length", "Sepal.Width")], col=kc$cluster)
+
+points(kc$centers[,c("Sepal.Length", "Sepal.Width")], col=1:3, pch=8, cex=2)
+
+------------------------------------------------------
+TIME SERIES FORECASTING
+
+x = c(580,7813,28266,59287,75700,87820,95314,126214, 218843,471497,936851,1508725,2072113)
+
+library(lubridate)
+
+png(file="TimeSeriesCovid.png")
+
+mts = ts(x,start=decimal_date(ymd("2020-01-21")),frequency=365.25/7)
+
+plot(mts,xlab="Weekly Data",ylab="Positive Cases",main="COVID-19 Pademic",col.main="darkgreen")
+
+dev.off()
+
+MULTIVARIATE
+
+positivecases = c(580,7813,28266,59287,75700,87820,95314,126214,218843,471497,936851,1508725,2072113)
+
+recoveredcases=c(17,270,565,1261,2126,2800,3285,4628,8951,21283,47210,88480,138475 )
+
+library(lubridate)
+
+png(file="Multivariate14.png")
+
+mts=ts(cbind(positivecases,recoveredcases),start=decimal_date(ymd("2020_01_21")),frequency = 365.25/7)
+
+plot(mts,xlab="Weekly ata",main="Pandemic",col.main="darkGreen")
+
+dev.off()
+
+FORECASTING
+
+x <- c(580, 7813, 28266, 59287, 75700,87820, 95314, 126214, 218843, 471497, 936851, 1508725, 2072113)
+
+library(lubridate)
+
+library(forecast)
+
+png(file ="forecastTimeSeries.png")
+
+mts <- ts(x, start = decimal_date(ymd("2020-01-22")), frequency = 365.25 / 7)
+
+fit <- auto.arima(mts)
+
+forecast(fit, 5)
+
+plot(forecast(fit, 5), xlab ="Weekly Data", ylab ="Total Positive Cases", main ="COVID-19 Pandemic", col.main ="darkgreen")
+
+dev.off()
+
+-----------------------------------
+SIMPLE MULTIPLE REG
+
+input = read.csv("ageheight.csv")
+
+lmHeight = lm(height~age,data=input)
+
+summary(lmHeight)
+
+plot(input,pch=16,col="blue")
+
+lmHeight=lm(height~age,data=input)
+
+a = data.frame(age=20.5)
+
+result = predict(lmHeight,a)
+
+print(result)
+
+input = read.csv("ageheight.csv")
+
+lmHeight = lm(height~age + no_siblings,data=input)
+
+summary(lmHeight)
+-----------------------------------
+LOGISTIC REGRESSION
+
+install.packages("caTools")
+
+install.packages("ROCR")
+
+library(caTools)
+
+library(ROCR)
+
+split <- sample.split(mtcars, SplitRatio = 0.8)
+
+split
+
+train_reg <- subset(mtcars, split == "TRUE")
+
+test_reg <- subset(mtcars,split=="FALSE")
+
+logistic_model <- glm(vs ~ wt + disp,data = train_reg,family = "binomial")
+
+logistic_model
+
+summary(logistic_model)
+
+predict_reg <- predict(logistic_model,test_reg, type = "response")
+
+predict_reg
+
+predict_reg <- ifelse(predict_reg >0.5, 1, 0)
+
+table(test_reg$vs, predict_reg)
+
+missing_classerr <- mean(predict_reg != test_reg$vs)
+
+print(paste('Accuracy =', 1 - missing_classerr))
+
+ROCPred <- prediction(predict_reg, test_reg$vs)
+
+ROCPer <- performance(ROCPred, measure = "tpr",x.measure = "fpr")
+
+auc <- performance(ROCPred, measure = "auc")
+
+auc <- auc@y.values[[1]]
+
+auc
+
+plot(ROCPer)
+
+plot(ROCPer, colorize = TRUE, print.cutoffs.at = seq(0.1, by = 0.1), main = "ROC CURVE")
+
+abline(a = 0, b = 1)
+
+auc <- round(auc, 4) 
+
+legend(.6, .4, auc, title = "AUC", cex = 1)
+-----------------------------------------
+HYPOTHESIS TESTING
+
+mistime<-read.csv(file.choose(),header=T)
+t.test(mistime$TIME,alternative="greater",mu=90)
+
+mistime2<-read.csv(file.choose(),header=T)
+t.test(mistime2$TIME_G1,mistime2$TIME_G2,alternative="two.sided",var.equal = TRUE)
+
+----------------------------
+ANOVA 
+
+library(ggplot2)
+
+library(ggpubr)
+
+library(tidyverse)
+
+library(broom)
+
+library(AICcmodavg)
+
+crop.data<-read.csv("crop.data")
+
+one.way <- aov(yield ~ fertilizer, data = crop.data)
+
+summary(one.way)
+
+two.way <- aov(yield ~ fertilizer + density, data = crop.data)
+
+summary(two.way)
+
+interaction <- aov(yield ~ fertilizer*density, data = crop.data)
+
+summary(interaction)
+
+blocking <- aov(yield ~ fertilizer + density + block, data = crop.data)
+
+summary(blocking)
+
+model.set <- list(one.way, two.way, interaction, blocking)
+
+model.names <- c("one.way", "two.way", "interaction", "blocking")
+
+par(mfrow=c(2,2))
+
+plot(two.way)
+
+par(mfrow=c(1,1))
+
+---------------------------
+DECISION TREE
+
+FOREST
+
+library(party)
+
+input.dat <- readingSkills[c(1:105),]
+
+png(file = "decision_tree.png")
+
+output.tree <- ctree(nativeSpeaker ~ age + shoeSize + score, data = input.dat)
+
+plot(output.tree)
+
+dev.off()
+
+RANDOM FOREST
+
+library(party)
+
+library(randomForest)
+
+output.forest <- randomForest(nativeSpeaker ~ age + shoeSize + score, data = readingSkills)
+
+print(output.forest)
+
+plot(output.forest)
+
+print(importance(fit,type = 2))
+
+
+
+
+
+
